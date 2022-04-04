@@ -42,7 +42,7 @@ function setUpTextures(){
     
     // load the actual image
     var worldImage = document.getElementById ('world-texture')
-    worldImage.crossOrigin = "";
+    //worldImage.crossOrigin = "";
         
     // bind the texture so we can perform operations on it
     gl.bindTexture (gl.TEXTURE_2D, worldTexture);
