@@ -9,6 +9,8 @@
 
   // the textures
   let worldTexture;
+  let marsTexture;
+  let procTexture;
   
   // VAOs for the objects
   var mySphere = null;
@@ -38,22 +40,82 @@ function setUpTextures(){
     
     // get some texture space from the gpu
     worldTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, worldTexture);
-    
+    marsTexture = gl.createTexture();
+    procTexture = gl.createTexture();
+
     // load the actual image
-    var worldImage = document.getElementById ('world-texture')
+    var worldImage = document.getElementById ('world-texture');
+    var marsImage = document.getElementById ('mars-texture');
+    var procImage = document.getElementById ('world-texture')
     //worldImage.crossOrigin = "";
         
     // bind the texture so we can perform operations on it
     gl.bindTexture (gl.TEXTURE_2D, worldTexture);
-        
     // load the texture data
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, worldImage.width, worldImage.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, worldImage);
-        
     // set texturing parameters
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+    // bind the mars texture
+    gl.bindTexture (gl.TEXTURE_2D, marsTexture);
+    // load the texture data
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, marsImage.width, marsImage.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, marsImage);
+    // set texturing parameters
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);  
+
+    // procedurally edit the image
+    var textureSize = procImage.height*procImage.width*4;
+    const pixels = new Uint8Array(textureSize);
+    var freq = 10
+    for (let i = 0; i < textureSize; i+=4) {
+      var x = i/4 % procImage.width;
+      var u = x/procImage.width;
+      var y = Math.floor((i/4)/procImage.width);
+      var v = y/procImage.height;
+      var umod = (u*freq) % 1;
+      var vmod = (v*freq) % 1;
+      if (umod < 0.5) {
+        if (vmod < 0.5) {
+          // red
+          pixels[i] = 153
+          pixels[i+1] = 51
+          pixels[i+2] = 51
+          pixels[i+3] = 255
+        } else {
+          // purple
+          pixels[i] = 153
+          pixels[i+1] = 51
+          pixels[i+2] = 153
+          pixels[i+3] = 255
+        }
+      } else {
+        if (vmod < 0.5) {
+          // blue
+          pixels[i] = 0
+          pixels[i+1] = 102
+          pixels[i+2] = 153
+          pixels[i+3] = 255
+        } else {
+          // green
+          pixels[i] = 51
+          pixels[i+1] = 153
+          pixels[i+2] = 51
+          pixels[i+3] = 255
+        }
+      }
+    }
+    // bind the procedural texture
+    gl.bindTexture (gl.TEXTURE_2D, procTexture);
+    // load the texture data
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, procImage.width, procImage.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    // set texturing parameters
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);  
 }
 
 //
@@ -79,7 +141,13 @@ function drawCurrentShape () {
     // set up texture uniform & other uniforms that you might
     // have added to the shader
     gl.activeTexture (gl.TEXTURE0);
-    gl.bindTexture (gl.TEXTURE_2D, worldTexture);
+    if (curTexture == 'globe') {
+      gl.bindTexture (gl.TEXTURE_2D, worldTexture);
+    } else if (curTexture == 'myimage') {
+      gl.bindTexture (gl.TEXTURE_2D, marsTexture);
+    } else {
+      gl.bindTexture (gl.TEXTURE_2D, procTexture);
+    }
     gl.uniform1i (program.uTheTexture, 0);
     
     // set up rotation uniform
