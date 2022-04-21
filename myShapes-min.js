@@ -381,8 +381,6 @@ class Sphere extends cgIShape {
 
     }
 
-    
-    
 }
 
 
